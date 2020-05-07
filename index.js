@@ -3,6 +3,7 @@ const koaLogger = require('koa-logger');
 const logger = require('logger');
 const cors = require('@koa/cors');
 const body = require('koa-body');
+const mount = require('koa-mount');
 const filmRouter = require('routes/film.router');
 
 const app = new Koa();
@@ -29,7 +30,8 @@ app.use(async (ctx, next) => {
     await next();
 });
 
-app.use(filmRouter.routes())
+// app.use(filmRouter.routes())
+app.use(mount('/api/v1', filmRouter.routes()));
 
 app.listen(3000, function (err) {
     if (err) {
