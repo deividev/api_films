@@ -1,10 +1,12 @@
 const Koa = require('koa');
 const koaLogger = require('koa-logger');
-const logger = require('logger')
+const logger = require('logger');
+const cors = require('@koa/cors');
 
 const app = new Koa();
 
 if (process.env.NODE_ENV === 'dev') {
+    app.use(cors());
     app.use(koaLogger());
 }
 
