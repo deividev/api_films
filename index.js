@@ -18,7 +18,6 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
     // console.log(`The request url is ${ctx.url}`);
     logger.debug(`The request url is ${ctx.url}`);
-    logger.info(`The request url is ${ctx.url}`);
     // ctx.body = 'My first middleware';
     ctx.body = { ok: 1 };
 });

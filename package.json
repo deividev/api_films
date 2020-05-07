@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_PATH='.' NODE_ENV='dev' node index.js | bunyan",
+    "start": "cross-env NODE_PATH='.' NODE_ENV='dev' node index.js | bunyan",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,5 +14,8 @@
     "bunyan": "^1.8.12",
     "koa": "^2.11.0",
     "koa-logger": "^3.2.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.2"
   }
 }
