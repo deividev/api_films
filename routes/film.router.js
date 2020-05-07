@@ -33,7 +33,7 @@ class FilmRouter {
         logger.info(`Updating film with id ${ctx.params.id}`);
         let film = null;
         films = films.map((f) => {
-            if (f.id === +ctx.params.id){
+            if (f.id === +ctx.params.id) {
                 film = Object.assign(f, ctx.request.body);
                 return film;
             }
@@ -47,7 +47,14 @@ class FilmRouter {
     }
 
     static async delete(ctx) {
-
+        logger.info(`Deleting film with id ${ctx.params.id}`);
+        const before = films.length;
+        films = films.filter((f) => f.id !== +ctx.params.id);
+        if (films.length >= before) {
+            ctx.throw(404, 'Film not found');
+            return;
+        }
+        ctx.body = null;
     }
 }
 
