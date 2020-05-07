@@ -1,6 +1,11 @@
 const Koa = require('koa');
+const koaLogger = require('koa-logger');
 
 const app = new Koa();
+
+if (process.env.NODE_ENV === 'dev') {
+    app.use(koaLogger());
+}
 
 app.use(async (ctx, next) => {
     const start = Date.now();
