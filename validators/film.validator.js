@@ -14,7 +14,7 @@ class FilmValidator {
     }
 
     static async validateId(ctx, next) {
-        ctx.checkParams('id').isInt().toInt(10);
+        ctx.checkParams('id').isHexadecimal().isLength(24);
 
         if (ctx.errors && ctx.errors.length > 0){
             ctx.status = 422;
