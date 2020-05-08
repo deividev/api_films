@@ -11,53 +11,58 @@ const File = require('koa-generic-session-file');
 // require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
 
-const app = new Koa();
-app.keys = ['claveSuperSecreta'];
+const mongoose = require('mongoose');
 
-if (process.env.NODE_ENV === 'dev') {
-    app.use(cors());
-    app.use(koaLogger());
+const mongoUri = 'mongodb://localhost:27017/films-db';
+
+const onDBReady = (err) => {
+    if (err) {
+        logger.error('Error connecting', err);
+        throw new Error('Error connecting', err);
+    }
+
+    const app = new Koa();
+    if (process.env.NODE_ENV === 'dev') {
+        app.use(cors());
+        app.use(koaLogger());
+    }
+
+    app.keys = ['claveSuperSecreta'];
+    app.use(session({
+        store: new File({
+            sessionDirectory: __dirname + '/sessions'
+        })
+    }));
+
+    // Guardar session
+    app.use(async (ctx, next) => {
+        logger.debug(`The request url is ${ctx.url}`);
+        logger.info(`Last request was ${ctx.session.lastRequest}`);
+        ctx.session.lastRequest = new Date();
+        await next();
+    });
+
+    app.use(body());
+
+    // Tiempo de respuesta
+    app.use(async (ctx, next) => {
+        const start = Date.now();
+        await next();
+        const time = Date.now() - start;
+        ctx.set('X-Response-Time', `${time} ms`)
+    });
+
+    validate(app);
+
+    app.use(mount('/api/v1', filmRouter.routes()));
+
+    app.listen(3000, function (err) {
+        if (err) {
+            console.error('Error listening in port 3000', err);
+            process.exit(1);
+        }
+        console.log('Koa server listening in port 3000');
+    });
 }
 
-app.use(session({
-    store: new File({
-        sessionDirectory: __dirname + '/sessions'
-    })
-}));
-
-app.use(async (ctx, next) => {
-    logger.info(`Last request was ${ctx.session.lastRequest}`);
-    ctx.session.lastRequest = new Date();
-    await next();
-});
-
-app.use(body());
-
-// app.use(validate());
-validate(app);
-
-app.use(async (ctx, next) => {
-    const start = Date.now();
-    await next();
-    const time = Date.now() - start;
-    ctx.set('X-Response-Time', `${time} ms`)
-});
-
-app.use(async (ctx, next) => {
-    // console.log(`The request url is ${ctx.url}`);
-    logger.debug(`The request url is ${ctx.url}`);
-    // ctx.body = 'My first middleware';
-    // ctx.body = { ok: 1 };
-    await next();
-});
-
-// app.use(filmRouter.routes())
-app.use(mount('/api/v1', filmRouter.routes()));
-
-app.listen(3000, function (err) {
-    if (err) {
-        console.error('Error listening in port 3000', err);
-        process.exit(1);
-    }
-    console.log('Koa server listening in port 3000');
-});
+mongoose.connect(mongoUri,{ useNewUrlParser: true, useUnifiedTopology: true }, onDBReady);
