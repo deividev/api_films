@@ -1,22 +1,20 @@
 const logger = require('logger');
 const Router = require('@koa/router');
+const mongoose = require('mongoose');
 const FilmValidator = require('validators/film.validator');
-
-let films = [];
-let nextId = 0;
+const FilmModel = require('models/film.model');
 
 class FilmRouter {
     static async get(ctx) {
         logger.info('Obtaining all films');
-        ctx.body = films;
+        ctx.body = await FilmModel.find();
     }
 
     static async getById(ctx) {
         logger.info(`Obtaining film with id ${ctx.params.id}`);
-        const film = films.find((f) => f.id === +ctx.params.id);
+        const film = await FilmModel.findById(ctx.params.id);
         if (!film) {
             ctx.throw(404, 'Film not found');
-            // return;
         }
         ctx.body = film;
     }
@@ -30,38 +28,46 @@ class FilmRouter {
             image: ctx.request.body.image,
             imdbUrl: ctx.request.body.imdbUrl
         };
-        film.id = nextId++;
-        films.push(film);
-        ctx.body = film;
+        ctx.body =  await new FilmModel(film).save();
         ctx.status = 201;
     }
 
     static async update(ctx) {
         logger.info(`Updating film with id ${ctx.params.id}`);
         let film = null;
-        films = films.map((f) => {
-            if (f.id === +ctx.params.id) {
-                film = Object.assign(f, ctx.request.body);
-                return film;
-            }
-            return f;
-        });
+        try {
+            film = await FilmModel.findById(ctx.params.id);
+        } catch (error) {
+            logger.error(error);
+            ctx.throw(404, 'Error en la base de datos');
+        }
         if (!film) {
             ctx.throw(404, 'Film not found');
             return;
         }
-        ctx.body = film;
+        
+        Object.assign(film, ctx.request.body);
+        
+        ctx.body = await film.save();
     }
 
     static async delete(ctx) {
         logger.info(`Deleting film with id ${ctx.params.id}`);
-        const before = films.length;
-        films = films.filter((f) => f.id !== +ctx.params.id);
-        if (films.length >= before) {
+        let numDeleted = 0
+        try {
+            numDeleted = await FilmModel.remove({_id: mongoose.Types.ObjectId(ctx.params.id)});
+        } catch (error) {
+            logger.error(error);
+            ctx.throw(404, 'Error en la base de datos');
+        }
+        logger.debug('Element removed ', numDeleted);
+
+        if (numDeleted.deletedCount <= 0) {
             ctx.throw(404, 'Film not found');
             return;
         }
-        ctx.body = null;
+
+        ctx.body = numDeleted;
     }
 }
 
