@@ -4,6 +4,8 @@ const logger = require('logger');
 const cors = require('@koa/cors');
 const body = require('koa-body');
 const mount = require('koa-mount');
+const validate = require('koa-validate');
+// require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
 
 const app = new Koa();
@@ -14,6 +16,9 @@ if (process.env.NODE_ENV === 'dev') {
 }
 
 app.use(body());
+
+// app.use(validate());
+validate(app);
 
 app.use(async (ctx, next) => {
     const start = Date.now();

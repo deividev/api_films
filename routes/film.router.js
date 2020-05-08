@@ -1,5 +1,6 @@
 const logger = require('logger');
 const Router = require('@koa/router');
+const FilmValidator = require('validators/film.validator');
 
 let films = [];
 let nextId = 0;
@@ -22,7 +23,13 @@ class FilmRouter {
 
     static async create(ctx) {
         logger.info(`Creating new film with body ${ctx.request.body}`);
-        const film = ctx.request.body;
+        const film = {
+            name: ctx.request.body.name,
+            year: ctx.request.body.year,
+            gender: ctx.request.body.gender,
+            image: ctx.request.body.image,
+            imdbUrl: ctx.request.body.imdbUrl
+        };
         film.id = nextId++;
         films.push(film);
         ctx.body = film;
@@ -60,9 +67,9 @@ class FilmRouter {
 
 const router = new Router({ prefix: '/film' });
 router.get('/', FilmRouter.get);
-router.get('/:id', FilmRouter.getById);
-router.post('/', FilmRouter.create);
-router.put('/:id', FilmRouter.update);
-router.delete('/:id', FilmRouter.delete);
+router.get('/:id', FilmValidator.validateId, FilmRouter.getById);
+router.post('/', FilmValidator.validateCreate, FilmRouter.create);
+router.put('/:id', FilmValidator.validateId, FilmRouter.update);
+router.delete('/:id', FilmValidator.validateId, FilmRouter.delete);
 
 module.exports = router;
