@@ -5,15 +5,31 @@ const cors = require('@koa/cors');
 const body = require('koa-body');
 const mount = require('koa-mount');
 const validate = require('koa-validate');
+const session = require('koa-generic-session');
+const File = require('koa-generic-session-file');
+
 // require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
 
 const app = new Koa();
+app.keys = ['claveSuperSecreta'];
 
 if (process.env.NODE_ENV === 'dev') {
     app.use(cors());
     app.use(koaLogger());
 }
+
+app.use(session({
+    store: new File({
+        sessionDirectory: __dirname + '/sessions'
+    })
+}));
+
+app.use(async (ctx, next) => {
+    logger.info(`Last request was ${ctx.session.lastRequest}`);
+    ctx.session.lastRequest = new Date();
+    await next();
+});
 
 app.use(body());
 
