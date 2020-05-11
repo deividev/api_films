@@ -1,4 +1,6 @@
 const Router = require("@koa/router");
+const bcrypt = require('bcrypt');
+const UserModel = require('models/user.model');
 
 class AuthRouter {
     static async showSignUp(ctx)  {
@@ -10,7 +12,17 @@ class AuthRouter {
     }
 
     static async createUser(ctx) {
-        
+        const salt = await bcrypt.genSalt();
+        const password = await bcrypt.hash(ctx.request.body.password, salt);
+
+        await new UserModel({
+            email: ctx.request.body.email,
+            provider: 'local',
+            salt,
+            password
+        }).save();
+
+        ctx.redirect('/auth/login');
     }
 }
 
