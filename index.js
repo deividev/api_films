@@ -8,6 +8,8 @@ const validate = require('koa-validate');
 const session = require('koa-generic-session');
 const File = require('koa-generic-session-file');
 const passport = require('koa-passport');
+const views = require('koa-views');
+const htmlRouter = require('routes/html.router')
 
 // require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
@@ -54,6 +56,12 @@ const onDBReady = (err) => {
 
     validate(app);
 
+    app.use(views(__dirname + '/views', {
+        map: {
+            ejs: 'ejs'
+        }
+    }));
+
     require('services/auth.service');
 
     app.use(passport.initialize());
@@ -62,6 +70,8 @@ const onDBReady = (err) => {
     app.use(passport.authenticate('basic'));
 
     app.use(mount('/api/v1', filmRouter.routes()));
+
+    app.use(htmlRouter.routes());
 
     app.listen(3000, function (err) {
         if (err) {
