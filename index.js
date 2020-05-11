@@ -9,7 +9,8 @@ const session = require('koa-generic-session');
 const File = require('koa-generic-session-file');
 const passport = require('koa-passport');
 const views = require('koa-views');
-const htmlRouter = require('routes/html.router')
+const htmlRouter = require('routes/html.router');
+const authRouter = require('routes/auth.router');
 
 // require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
@@ -66,11 +67,18 @@ const onDBReady = (err) => {
 
     app.use(passport.initialize());
     app.use(passport.session());
+    // app.use(passport.authenticate('basic'));
+    app.use(authRouter.routes());
 
-    app.use(passport.authenticate('basic'));
+    app.use(async (ctx, next) => {
+        if (!ctx.isAuthenticated()) {
+            ctx.redirect('/auth/login');
+            return;
+        }
+        await next();
+    });
 
     app.use(mount('/api/v1', filmRouter.routes()));
-
     app.use(htmlRouter.routes());
 
     app.listen(3000, function (err) {
