@@ -7,6 +7,7 @@ const mount = require('koa-mount');
 const validate = require('koa-validate');
 const session = require('koa-generic-session');
 const File = require('koa-generic-session-file');
+const passport = require('koa-passport');
 
 // require('koa-validate')(app)
 const filmRouter = require('routes/film.router');
@@ -33,7 +34,6 @@ const onDBReady = (err) => {
             sessionDirectory: __dirname + '/sessions'
         })
     }));
-
     // Guardar session
     app.use(async (ctx, next) => {
         logger.debug(`The request url is ${ctx.url}`);
@@ -53,6 +53,13 @@ const onDBReady = (err) => {
     });
 
     validate(app);
+
+    require('services/auth.service');
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    app.use(passport.authenticate('basic'));
 
     app.use(mount('/api/v1', filmRouter.routes()));
 
