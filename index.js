@@ -81,7 +81,7 @@ const onDBReady = (err) => {
     app.use(mount('/api/v1', filmRouter.routes()));
     app.use(htmlRouter.routes());
 
-    app.listen(3000, function (err) {
+    app.listen(4000, function (err) {
         if (err) {
             console.error('Error listening in port 3000', err);
             process.exit(1);
